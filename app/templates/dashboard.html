@@ -1,0 +1,211 @@
+<!doctype html>
+<html lang="en-NZ">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Event Command Center | Operator Dashboard</title>
+  <link rel="stylesheet" href="/static/dashboard.css">
+  <script src="/static/dashboard.js" defer></script>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="Dashboard navigation">
+      <div class="brand-block">
+        <div class="brand-mark" aria-hidden="true">EC</div>
+        <div><p class="brand-kicker">Self-hosted operations</p><h1>Event Command Center</h1></div>
+      </div>
+      <nav class="nav-list">
+        <button class="nav-item is-active" data-view="overview"><span>01</span>Overview</button>
+        <button class="nav-item" data-view="content"><span>02</span>Website Content</button>
+        <button class="nav-item" data-view="guests"><span>03</span>Guest Tracker</button>
+        <button class="nav-item" data-view="invitations"><span>04</span>Invitations</button>
+        <button class="nav-item" data-view="photos"><span>05</span>Photo Library</button>
+        <button class="nav-item" data-view="run-sheet"><span>06</span>Run Sheet</button>
+        <button class="nav-item" data-view="checklist"><span>07</span>Checklist</button>
+        <button class="nav-item" data-view="budget"><span>08</span>Budget &amp; Payments</button>
+        <button class="nav-item" data-view="vendors"><span>09</span>Vendors</button>
+        <button class="nav-item" data-view="access"><span>10</span>Client Access</button>
+      </nav>
+      <div class="sidebar-footer">
+        <p>Private operator dashboard</p>
+        <a href="{{ guest_site_url }}" target="_blank" rel="noopener">Open guest site</a>
+        <small>SymbioFoundry</small>
+      </div>
+    </aside>
+
+    <main class="workspace">
+      <header class="topbar">
+        <button class="menu-toggle" type="button" aria-label="Toggle navigation">☰</button>
+        <div><p class="eyebrow">Single-operator event management</p><h2 id="view-title">Overview</h2></div>
+        <div class="topbar-actions">
+          <span class="state-pill" id="content-state">Loading</span>
+          <span class="save-indicator" id="save-indicator" role="status">Ready</span>
+          <a class="button button-secondary" href="/preview" target="_blank" rel="noopener">Preview Draft</a>
+        </div>
+      </header>
+
+      <section class="view is-active" data-view-panel="overview">
+        <div class="hero-panel">
+          <div><p class="eyebrow">Event operations</p><h3>Everything important, in one calm place.</h3><p>Website content, guest records, invitations, photos, schedules, tasks, payments, vendors, and client access.</p></div>
+          <div class="hero-actions"><button class="button button-primary" data-jump="content">Edit Website</button><button class="button button-secondary" data-jump="guests">Open Guest Tracker</button></div>
+        </div>
+        <div class="metric-grid" id="metric-grid"></div>
+        <div class="two-column">
+          <section class="panel"><div class="panel-header"><div><p class="eyebrow">Attention</p><h3>Current warnings</h3></div></div><div id="warning-list" class="stack-list"></div></section>
+          <section class="panel"><div class="panel-header"><div><p class="eyebrow">History</p><h3>Recent activity</h3></div></div><div id="activity-list" class="activity-list"></div></section>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="content">
+        <div class="section-heading">
+          <div><p class="eyebrow">Draft → Preview → Publish</p><h3>Website Content</h3><p>Edits autosave to draft. Guests see only the last published version.</p></div>
+          <div class="button-row"><button class="button button-secondary" id="discard-draft">Discard Draft</button><a class="button button-secondary" href="/preview" target="_blank" rel="noopener">Preview Changes</a><button class="button button-primary" id="publish-content">Publish Changes</button></div>
+        </div>
+        <div class="content-layout">
+          <form id="content-form" class="panel content-form" autocomplete="off">
+            <div class="form-grid two"><label>Event title<input name="event_title" maxlength="180"></label><label>Event subtitle<input name="event_subtitle" maxlength="180"></label></div>
+            <label>Welcome text<textarea name="welcome_text" rows="3"></textarea></label>
+            <label>Event introduction<textarea name="couple_intro" rows="4"></textarea></label>
+            <label>Venue details<textarea name="venue_text" rows="4"></textarea></label>
+            <label>Schedule or itinerary<textarea name="schedule_text" rows="5"></textarea></label>
+            <label>Dress guidance<textarea name="dress_text" rows="4"></textarea></label>
+            <label>Frequently asked questions<textarea name="faq_text" rows="6"></textarea></label>
+            <label>Travel information<textarea name="travel_text" rows="4"></textarea></label>
+            <label>Parking information<textarea name="parking_text" rows="4"></textarea></label>
+            <label>Accommodation guidance<textarea name="accommodation_text" rows="4"></textarea></label>
+            <label>Gift / no-pressure message<textarea name="gift_text" rows="4"></textarea></label>
+            <label>Additional guest information (public when published)<textarea name="guest_only_text" rows="4"></textarea></label>
+            <label>Contact / help information<textarea name="contact_text" rows="4"></textarea></label>
+          </form>
+          <aside class="panel history-panel">
+            <div class="panel-header"><div><p class="eyebrow">Read-only snapshots</p><h3>Publication History</h3></div></div>
+            <label>Optional publish note<input id="publish-note" maxlength="500" placeholder="What changed?"></label>
+            <div id="publication-history" class="stack-list compact"></div>
+          </aside>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="guests">
+        <div class="section-heading">
+          <div><p class="eyebrow">Parties, attendees, responses</p><h3>Guest Tracker</h3><p>Add guests manually or import a CSV file.</p></div>
+          <div class="button-row"><a class="button button-secondary" href="/api/parties/import-template.csv">Download CSV Template</a><button class="button button-secondary" id="import-guests">Import CSV</button><button class="button button-primary" id="add-party">Add Party</button></div>
+        </div>
+        <input id="guest-csv-file" type="file" accept=".csv,text/csv" hidden>
+        <div class="filter-bar panel">
+          <input id="guest-search" type="search" placeholder="Search names, email, phone">
+          <select id="guest-response-filter"><option value="">All responses</option><option>attending</option><option>unsure</option><option>not_attending</option></select>
+          <select id="guest-workflow-filter"><option value="">All workflow states</option><option>new</option><option>reviewed</option><option>needs_follow_up</option><option>confirmed</option><option>closed</option></select>
+          <label class="check-label"><input id="show-deleted" type="checkbox"> Deleted records</label>
+        </div>
+        <div id="guest-list" class="guest-list"></div>
+      </section>
+
+      <section class="view" data-view-panel="invitations">
+        <div class="section-heading"><div><p class="eyebrow">Prepare in dashboard, send in Gmail</p><h3>Invitation Email</h3><p>Recipients are placed in BCC. Gmail performs the final Send action.</p></div></div>
+        <div class="invitation-layout">
+          <form class="panel invitation-editor" id="invitation-form">
+            <label>Email subject<input name="invitation_subject" maxlength="300"></label>
+            <label>Invitation message<textarea name="invitation_message" rows="8"></textarea></label>
+            <label>Event-site link<input name="event_site_link" type="url"></label>
+            <div class="button-row"><button class="button button-secondary" type="button" id="save-invitation-settings">Save Text</button><button class="button button-secondary" type="button" id="copy-bcc">Copy BCC List</button><button class="button button-secondary" type="button" id="export-recipient-csv">Export Recipient CSV</button></div>
+          </form>
+          <section class="panel invitation-recipients">
+            <div class="panel-header"><div><p class="eyebrow">Recipient selection</p><h3>Guest email list</h3></div><span class="state-pill" id="invitation-selection-count">0 selected</span></div>
+            <div class="quick-select-row">
+              <button class="button button-secondary" type="button" data-select-invitations="all">Select All</button>
+              <button class="button button-secondary" type="button" data-select-invitations="attending">Attending</button>
+              <button class="button button-secondary" type="button" data-select-invitations="unsure">No RSVP Yet</button>
+              <button class="button button-secondary" type="button" data-select-invitations="follow-up">Needs Follow-up</button>
+              <button class="button button-secondary" type="button" data-select-invitations="clear">Clear Selection</button>
+            </div>
+            <div class="invitation-list" id="invitation-list"></div>
+            <div class="invitation-actions">
+              <button class="button button-primary" type="button" id="prepare-invitation-email">Prepare Invitation Email</button>
+              <button class="button button-secondary" type="button" id="mark-invitations-sent">Mark Selected Sent</button>
+              <button class="button button-secondary" type="button" id="reset-invitation-status">Reset Selected</button>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" data-view-panel="photos">
+        <div class="section-heading"><div><p class="eyebrow">Private upload → host selection → public gallery</p><h3>Photo Library</h3><p>Website design assets are excluded. New uploads are private until Show in Gallery is switched on.</p></div></div>
+        <div class="panel photo-upload-panel">
+          <div class="photo-dropzone" id="photo-dropzone" tabindex="0" role="button" aria-label="Upload photographs">
+            <strong>Drop photographs here</strong>
+            <span>or click to choose multiple JPG, PNG, WebP, HEIC or HEIF files</span>
+            <input id="photo-upload-input" type="file" accept=".jpg,.jpeg,.png,.webp,.heic,.heif,image/jpeg,image/png,image/webp,image/heic,image/heif" multiple hidden>
+          </div>
+          <div class="upload-progress" id="photo-upload-progress" role="status"></div>
+        </div>
+        <div class="photo-summary" id="photo-summary"></div>
+        <div class="photo-grid" id="photo-grid"></div>
+      </section>
+
+      <section class="view" data-view-panel="run-sheet">
+        <div class="section-heading"><div><p class="eyebrow">Event-day sequence</p><h3>Printable Run Sheet</h3></div><button class="button button-primary" data-add-simple="run-sheet">Add Run-Sheet Item</button></div>
+        <div class="panel table-wrap"><table><thead><tr><th>Time</th><th>Item</th><th>Owner</th><th>Status</th><th></th></tr></thead><tbody id="run-sheet-table"></tbody></table></div>
+      </section>
+
+      <section class="view" data-view-panel="checklist">
+        <div class="section-heading"><div><p class="eyebrow">Tasks and follow-up</p><h3>Checklist</h3></div><button class="button button-primary" data-add-simple="checklist">Add Task</button></div>
+        <div class="panel table-wrap"><table><thead><tr><th>Task</th><th>Owner</th><th>Due</th><th>Status</th><th></th></tr></thead><tbody id="checklist-table"></tbody></table></div>
+      </section>
+
+      <section class="view" data-view-panel="budget">
+        <div class="section-heading"><div><p class="eyebrow">Forecast and actuals</p><h3>Budget &amp; Payments</h3></div><button class="button button-primary" data-add-simple="budget">Add Budget Item</button></div>
+        <div class="budget-totals" id="budget-totals"></div>
+        <div class="panel table-wrap"><table><thead><tr><th>Item</th><th>Vendor</th><th>Estimated</th><th>Actual</th><th>Payment</th><th></th></tr></thead><tbody id="budget-table"></tbody></table></div>
+      </section>
+
+      <section class="view" data-view-panel="vendors">
+        <div class="section-heading"><div><p class="eyebrow">Contacts and notes</p><h3>Vendors</h3></div><button class="button button-primary" data-add-simple="vendors">Add Vendor</button></div>
+        <div class="card-grid" id="vendor-grid"></div>
+      </section>
+
+      <section class="view" data-view-panel="access">
+        <div class="section-heading"><div><p class="eyebrow">External guest link</p><h3>Client Access</h3><p>The dashboard and database remain private. Only the guest-site port may be exposed.</p></div></div>
+        <div class="panel access-panel">
+          <div class="access-state"><span class="status-dot" id="access-dot"></span><div><p class="eyebrow">Current state</p><h3 id="access-state-label">Checking</h3></div></div>
+          <p id="access-explanation">Reading optional external-access configuration.</p>
+          <div class="button-row"><button class="button button-primary" id="open-client-access">Open Client Access</button><button class="button button-danger" id="close-client-access">Close Client Access</button><button class="button button-secondary" id="check-client-access">Check State</button></div>
+          <p class="callout" id="access-callout"></p>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <dialog id="party-dialog" class="modal wide">
+    <form method="dialog" id="party-form">
+      <div class="modal-header"><div><p class="eyebrow">Host working record</p><h3 id="party-dialog-title">Add Party</h3></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <input type="hidden" name="id">
+      <div class="form-grid two">
+        <label>Party / household name<input name="party_name" required></label>
+        <label>Primary contact<input name="contact_name"></label>
+        <label>Email<input name="email" type="email"></label>
+        <label>Phone<input name="phone"></label>
+        <label>Guest response<select name="guest_response"><option>attending</option><option>unsure</option><option>not_attending</option></select></label>
+        <label>Host workflow<select name="workflow_state"><option>new</option><option>reviewed</option><option>needs_follow_up</option><option>confirmed</option><option>closed</option></select></label>
+        <label>Plus-one status<select name="plus_one_status"><option>not_applicable</option><option>pending</option><option>approved</option><option>declined</option></select></label>
+        <label>Plus-one name<input name="plus_one_name"></label>
+      </div>
+      <label>Party note<textarea name="party_note" rows="3"></textarea></label>
+      <label>Private host notes<textarea name="host_notes" rows="3"></textarea></label>
+      <div class="attendee-header"><div><p class="eyebrow">Per-attendee details</p><h4>Attendees</h4></div><button type="button" class="button button-secondary" id="add-attendee">Add Attendee</button></div>
+      <div id="attendee-editor" class="attendee-editor"></div>
+      <div class="modal-actions"><button class="button button-secondary" value="cancel">Cancel</button><button type="submit" class="button button-primary">Save Party</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="simple-dialog" class="modal">
+    <form method="dialog" id="simple-form">
+      <div class="modal-header"><div><p class="eyebrow">Event record</p><h3 id="simple-dialog-title">Add Item</h3></div><button class="icon-button" value="cancel" aria-label="Close">×</button></div>
+      <input type="hidden" name="module"><input type="hidden" name="id">
+      <div id="simple-fields"></div>
+      <div class="modal-actions"><button class="button button-secondary" value="cancel">Cancel</button><button type="submit" class="button button-primary">Save</button></div>
+    </form>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+</body>
+</html>

@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en" data-initial-view="{{ initial_view|default('home') }}"{% if preview_mode %} data-preview="true"{% endif %}>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#13243c">
+  <meta name="description" content="A locally hosted event information and RSVP site.">
+  <title>{{ content.event_title|default('Example Community Gathering') }} | Event Information</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='guest-site.css') }}">
+  <script src="{{ url_for('static', filename='guest-site.js') }}" defer></script>
+</head>
+<body>
+  <a class="skip-link" href="#site-content">Skip to event information</a>
+  {% if preview_mode %}<div class="preview-banner">Draft preview — changes are not public until published.</div>{% endif %}
+  <div class="page-shell">
+    <header class="masthead">
+      <a class="home-wordmark" href="/" aria-label="Event home"><span class="brand-symbol" aria-hidden="true">EC</span><span>Event information<small>Self-hosted · Event Command Center</small></span></a>
+      <span class="status-chip">Guest portal</span>
+    </header>
+
+    <main id="site-content">
+      <section class="hero" aria-labelledby="event-title">
+        <p class="eyebrow">Welcome to the event</p>
+        <h1 id="event-title">{{ content.event_title|default('Example Community Gathering') }}</h1>
+        <p class="hero-subtitle">{{ content.event_subtitle|default('An example self-hosted event') }}</p>
+        <div class="hero-decoration" aria-hidden="true"><span></span><span></span><span></span></div>
+      </section>
+
+      <nav class="guest-menu" aria-label="Event sections">
+        <a href="/" data-view="home">Overview</a>
+        <a href="/guest-info" data-view="guest-info">Event details</a>
+        <a href="/rsvp" data-view="rsvp">RSVP</a>
+        <a href="/gallery" data-view="gallery">Gallery</a>
+        <a href="/contact" data-view="contact">Contact</a>
+      </nav>
+
+      <div class="content-card">
+        <section class="view-panel" data-panel="home" aria-labelledby="home-heading">
+          <p class="eyebrow">About</p><h2 id="home-heading">Welcome</h2>
+          <p class="lead">{{ content.welcome_text|default('Welcome to our event.') }}</p>
+          <p>{{ content.couple_intro|default('Details and updates will appear here.') }}</p>
+          <a class="primary-action inline-action" href="/rsvp" data-view="rsvp">Respond to the invitation</a>
+        </section>
+
+        <section class="view-panel" data-panel="guest-info" aria-labelledby="guest-info-heading" hidden>
+          <p class="eyebrow">Plan your visit</p><h2 id="guest-info-heading">Event details</h2>
+          <div class="information-grid">
+            <article><h3>Venue</h3><p>{{ content.venue_text|default('Venue details will appear here.') }}</p></article>
+            <article><h3>Schedule</h3><p>{{ content.schedule_text|default('Schedule information will appear here.') }}</p></article>
+            <article><h3>Dress</h3><p>{{ content.dress_text|default('Dress guidance will appear here.') }}</p></article>
+            <article><h3>Travel</h3><p>{{ content.travel_text|default('Travel information will appear here.') }}</p></article>
+            <article><h3>Parking</h3><p>{{ content.parking_text|default('Parking guidance will appear here.') }}</p></article>
+            <article><h3>Accommodation</h3><p>{{ content.accommodation_text|default('Accommodation guidance will appear here.') }}</p></article>
+            <article><h3>Contributions</h3><p>{{ content.gift_text|default('Contribution guidance will appear here.') }}</p></article>
+            <article><h3>FAQs</h3><p>{{ content.faq_text|default('Frequently asked questions will appear here.') }}</p></article>
+          </div>
+          {% if content.guest_only_text %}<div class="quiet-note">{{ content.guest_only_text }}</div>{% endif %}
+        </section>
+
+        <section class="view-panel" data-panel="rsvp" aria-labelledby="rsvp-heading" hidden>
+          <p class="eyebrow">Your response</p><h2 id="rsvp-heading">RSVP</h2>
+          <p>Let the organizer know whether you can attend. Submitted information is stored on the host's server.</p>
+          <div class="form-status{% if rsvp_result.ok %} success{% elif rsvp_result.message %} error{% endif %}" id="rsvp-status" role="status" aria-live="polite">{{ rsvp_result.message|default('') }}</div>
+          <form class="rsvp-form" id="rsvp-form" method="post" action="/rsvp">
+            <div class="form-grid">
+              <label>Party or household name<input name="party_name" autocomplete="organization" maxlength="250" required></label>
+              <label>Primary contact<input name="contact_name" autocomplete="name" maxlength="250" required></label>
+              <label>Email<input name="email" type="email" autocomplete="email" maxlength="250"></label>
+              <label>Phone<input name="phone" type="tel" autocomplete="tel" maxlength="100"></label>
+            </div>
+            <fieldset><legend>Will you attend?</legend>
+              <label class="choice"><input type="radio" name="guest_response" value="attending" checked> Attending</label>
+              <label class="choice"><input type="radio" name="guest_response" value="not_attending"> Not attending</label>
+              <label class="choice"><input type="radio" name="guest_response" value="unsure"> Unsure</label>
+            </fieldset>
+            <label>Attendee names, one per line<textarea name="attendee_names" rows="3" maxlength="5000"></textarea></label>
+            <div class="form-grid"><label>Dietary requirements<textarea name="dietary_note" rows="2" maxlength="2000"></textarea></label><label>Allergy information<textarea name="allergy_note" rows="2" maxlength="2000"></textarea></label></div>
+            <label class="choice"><input type="checkbox" name="plus_one_requested" value="yes"> Request a plus-one</label>
+            <label>Plus-one name<input name="plus_one_name" maxlength="250"></label>
+            <label>Message for the organizer<textarea name="party_note" rows="3" maxlength="4000"></textarea></label>
+            <button class="primary-action" type="submit">Submit RSVP</button>
+          </form>
+        </section>
+
+        <section class="view-panel" data-panel="gallery" aria-labelledby="gallery-heading" hidden>
+          <p class="eyebrow">Event photos</p><h2 id="gallery-heading">Gallery</h2>
+          {% if gallery %}
+            <div class="gallery-grid">
+              {% for photo in gallery %}
+                <button type="button" class="gallery-card" data-full="{{ photo.display_url }}" data-alt="{{ photo.alt_text }}" data-caption="{{ photo.caption }}">
+                  <img src="{{ photo.thumbnail_url }}" alt="{{ photo.alt_text }}" loading="lazy" width="560" height="420">
+                  {% if photo.caption %}<span>{{ photo.caption }}</span>{% endif %}
+                </button>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="quiet-note">Fictional demonstration gallery — these AI-generated venue scenes are examples, not photographs of a real event. Your published photos will replace this sample gallery.</p>
+            <div class="gallery-grid demo-gallery">
+              <button type="button" class="gallery-card" data-full="{{ url_for('static', filename='demo/ecc-demo-gallery-venue.webp') }}" data-alt="Timber pergola walkway and landscaped entrance approaching a contemporary event venue." data-caption="Illustrative venue approach">
+                <img src="{{ url_for('static', filename='demo/ecc-demo-gallery-venue.webp') }}" alt="Timber pergola walkway and landscaped entrance approaching a contemporary event venue." loading="lazy" width="560" height="420">
+                <span>Venue approach · Demo</span>
+              </button>
+              <button type="button" class="gallery-card" data-full="{{ url_for('static', filename='demo/ecc-demo-gallery-tables.webp') }}" data-alt="Prepared timber dining tables with white flowers, candles and glassware under warm hanging lights." data-caption="Illustrative table arrangements">
+                <img src="{{ url_for('static', filename='demo/ecc-demo-gallery-tables.webp') }}" alt="Prepared timber dining tables with white flowers, candles and glassware under warm hanging lights." loading="lazy" width="560" height="420">
+                <span>Table arrangements · Demo</span>
+              </button>
+              <button type="button" class="gallery-card" data-full="{{ url_for('static', filename='demo/ecc-demo-gallery-presentation.webp') }}" data-alt="Small event presentation space with rows of timber chairs facing a blank screen." data-caption="Illustrative presentation area">
+                <img src="{{ url_for('static', filename='demo/ecc-demo-gallery-presentation.webp') }}" alt="Small event presentation space with rows of timber chairs facing a blank screen." loading="lazy" width="560" height="420">
+                <span>Presentation area · Demo</span>
+              </button>
+              <button type="button" class="gallery-card" data-full="{{ url_for('static', filename='demo/ecc-demo-gallery-details.webp') }}" data-alt="White flower arrangement and candle in a glass holder by a coastal venue window." data-caption="Illustrative event details">
+                <img src="{{ url_for('static', filename='demo/ecc-demo-gallery-details.webp') }}" alt="White flower arrangement and candle in a glass holder by a coastal venue window." loading="lazy" width="560" height="420">
+                <span>Event details · Demo</span>
+              </button>
+            </div>
+          {% endif %}
+        </section>
+
+        <section class="view-panel" data-panel="contact" aria-labelledby="contact-heading" hidden>
+          <p class="eyebrow">Need help?</p><h2 id="contact-heading">Contact</h2>
+          <p class="lead">{{ content.contact_text|default('Contact information will appear here.') }}</p>
+        </section>
+      </div>
+      <footer class="site-footer">Event Command Center · A self-hosted event platform</footer>
+    </main>
+  </div>
+
+  <dialog class="gallery-lightbox" id="gallery-lightbox" aria-labelledby="lightbox-caption">
+    <button class="lightbox-close" type="button" aria-label="Close photo viewer">×</button>
+    <button class="lightbox-nav lightbox-prev" type="button" aria-label="Previous photo">‹</button>
+    <figure><img id="lightbox-image" alt=""><figcaption id="lightbox-caption"></figcaption></figure>
+    <button class="lightbox-nav lightbox-next" type="button" aria-label="Next photo">›</button>
+  </dialog>
+</body>
+</html>
